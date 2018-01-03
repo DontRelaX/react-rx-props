@@ -333,9 +333,11 @@ describe('reactRxProps', () => {
   it('should respect addDollar = false', () => {
     const inputParam = 'Hello';
     const paramNext = sinon.spy();
+    const existNext = sinon.spy();
 
     sandbox.stub(MockComponent.prototype, 'componentWillMount').callsFake(function () {
       this.props.param.subscribe(paramNext);
+      this.props.exist.subscribe(existNext);
     });
 
     const Component = reactRxProps({
@@ -345,7 +347,10 @@ describe('reactRxProps', () => {
 
     expect(paramNext.calledOnce).toBeTruthy();
     expect(paramNext.withArgs(inputParam).calledOnce).toBeTruthy();
+    expect(existNext.notCalled).toBeTruthy();
 
     wrapper.unmount();
+
+    expect(existNext.withArgs(false).calledOnce).toBeTruthy();
   });
 });

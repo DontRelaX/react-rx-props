@@ -33,11 +33,13 @@ By default its `['className', 'style']`. Functions never wrapped into observable
 `existName` - name of `exist` param. By default it `exist`. If you set it to 
 `false` - exist param will be not passed. Exist param is useful observable
 that can be used as `observable.takeUntil(this.props.exist)`. It will be 
-resolved once HoC component will unmount.
+emit value once HoC component will unmount. Affected by `addDollar`.
 
 `propTypes` - instead specifying prop types in your component pass it here. By default `undefined`.
 
 `defaultProps` - instead specifying default props in your component pass it here. By default `undefined`.
+
+`addDollar` - if `true` it will add $ to property name when it wrapped into observable. By default `true`.
 
 ### Motivation
 Often after getting some input data we create some internal model of component 
@@ -146,14 +148,15 @@ export class Fibonacci extends React.Component {
   calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
   
   componentWillMount() {
-    this.props.useServerCall.subscribe(useServerCall => this.useServerCall = useServerCall);
+    this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
     
-    this.props.value.switchMap(value => {
+    this.props.value$.switchMap(value => {
+      this.value = value;
       this.setState({
         loading: true,
       }); 
       return this.calculateFibonacci(value, this.useServerCall)
-        .takeUntil(this.props.exist);
+        .takeUntil(this.props.exist$);
     }).subscribe(fibonacci => {
       this.setState({
         loading: false,
@@ -167,7 +170,7 @@ export class Fibonacci extends React.Component {
       <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
         { this.state.loading ?
           'Loading...' :
-          `Fibonacci of ${this.props.value} = {this.state.fibonacci}`
+          `Fibonacci of ${this.value} = ${this.state.fibonacci}`
         }
       </div>
     );
@@ -176,13 +179,15 @@ export class Fibonacci extends React.Component {
 ```
 
 Now all logic placed in componentWillMount. Lets make breakdown to explain what's going on:
-```$jsx
+```jsx harmony
 componentWillMount() {
-  //We are simply save useServerCall as class property, no setState call, no render.
+  //We are simply save useServerCall as class property (better to put such properties under some object), no setState call, no render.
   this.props.useServerCall.subscribe(useServerCall => this.useServerCall = useServerCall);
   
   //On every value change including initial value...
   this.props.value.switchMap(value => {
+    //...we save value as class property
+    this.value = value;
     //...we are set loading flag to true in state...
     this.setState({
       loading: true,
