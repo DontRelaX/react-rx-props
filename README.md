@@ -1,5 +1,7 @@
 ## React Rx Props
 
+[![Build Status](https://travis-ci.org/DontRelaX/react-rx-props.svg?branch=master)](https://travis-ci.org/DontRelaX/react-rx-props)
+
 HoC to wrap your component props into observables to specify straightforward rules when 
 component should update.
 
