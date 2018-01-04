@@ -113,7 +113,7 @@ export class Fibonacci extends React.Component {
     }
   }
   
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     return this.props.className !== nextProps.className || 
            this.props.value !== nextProps.value ||
            this.state.loading !== nextState.loading ||
@@ -190,7 +190,8 @@ export class Fibonacci extends React.Component {
 Now all logic placed in componentWillMount. Lets make breakdown to explain what's going on:
 ```jsx harmony
 componentWillMount() {
-  //We are simply save useServerCall as class property (better to put such properties under some object), no setState call, no render.
+  //We are simply save useServerCall as class property (better to put such properties under some object), 
+  //no setState call, no render.
   this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
   
   //On every value change including initial value...
