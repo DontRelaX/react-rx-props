@@ -38,9 +38,13 @@ By default its `['className', 'style']`. Functions never wrapped into observable
 that can be used as `observable.takeUntil(this.props.exist)`. It will be 
 emit value once HoC component will unmount. Affected by `addDollar`.
 
-`propTypes` - instead specifying prop types in your component pass it here. By default `undefined`.
+`propTypes` - instead specifying prop types in your component pass it here. By default `undefined`. 
+If `addDollar = true` all dollars at the end of prop names will be removed. It may help IDE to properly 
+highlight props.
 
 `defaultProps` - instead specifying default props in your component pass it here. By default `undefined`.
+If `addDollar = true` all dollars at the end of prop names will be removed. It may help IDE to properly 
+highlight props.
 
 `addDollar` - if `true` it will add $ to property name when it wrapped into observable. By default `true`.
 
@@ -80,7 +84,7 @@ export class Fibonacci extends React.Component {
   calculateFibonacci = (value, useServerCall, cb) => {
     const currentCalculationId = ++this.calculationId;
     calculateFibonacciExternal(value, useServerCall).then(fibonacci => {
-      if(currentCalculationId === currentCalculationId && !this.unmounted) {
+      if(currentCalculationId === this.calculationId && !this.unmounted) {
         cb(fibonacci);
       }
     });
@@ -111,7 +115,9 @@ export class Fibonacci extends React.Component {
   
   shouldComponentUpdate(nextProps) {
     return this.props.className !== nextProps.className || 
-           this.props.value !== this.props.value;
+           this.props.value !== nextProps.value ||
+           this.state.loading !== nextState.loading ||
+           this.state.fibonacci !== nextState.fibonacci;
   }
   
   componentWillUnmount() {
@@ -123,7 +129,7 @@ export class Fibonacci extends React.Component {
       <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
         { this.state.loading ?
           'Loading...' :
-          `Fibonacci of ${this.props.value} = {this.state.fibonacci}`
+          `Fibonacci of ${this.props.value} = ${this.state.fibonacci}`
         }
       </div>
     );
@@ -138,8 +144,8 @@ methods. Lets update it using React Rx Props library:
 @reactRxProps({
   propTypes: {
     className: PropTypes.string,
-    value: PropTypes.number,
-    useServerCall: PropTypes.bool, 
+    value$: PropTypes.number,
+    useServerCall$: PropTypes.bool, 
   }
 })
 export class Fibonacci extends React.Component {
@@ -185,10 +191,10 @@ Now all logic placed in componentWillMount. Lets make breakdown to explain what'
 ```jsx harmony
 componentWillMount() {
   //We are simply save useServerCall as class property (better to put such properties under some object), no setState call, no render.
-  this.props.useServerCall.subscribe(useServerCall => this.useServerCall = useServerCall);
+  this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
   
   //On every value change including initial value...
-  this.props.value.switchMap(value => {
+  this.props.value$.switchMap(value => {
     //...we save value as class property
     this.value = value;
     //...we are set loading flag to true in state...
@@ -198,7 +204,7 @@ componentWillMount() {
     //...and execute calculateFibonacci function that will return observable for result...
     return calculateFibonacci(value, this.useServerCall)
       //...We don't want to process result if component already unmounted...
-      .takeUntil(this.props.exist);
+      .takeUntil(this.props.exist$);
   })
   //...update state with calculated fibonacci
   .subscribe(fibonacci => {

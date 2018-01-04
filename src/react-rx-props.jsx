@@ -16,6 +16,22 @@ export const reactRxProps = (options = {}) => (Component) => {
   const isFunction = obj => !!(obj && obj.constructor && obj.call && obj.apply);
   const makeObservableName = name => `${name}${actualOptions.addDollar ? '$' : ''}`;
 
+  if (actualOptions.addDollar) {
+    const removeDollar = (props) => {
+      if (!props) {
+        return props;
+      }
+      return Object.entries(props).reduce((memo, [key, value]) => {
+        const match = /^(.*)\$$/.exec(key);
+        // eslint-disable-next-line no-param-reassign
+        memo[match ? match[1] : key] = value;
+        return memo;
+      }, {});
+    };
+    actualOptions.propTypes = removeDollar(actualOptions.propTypes);
+    actualOptions.defaultProps = removeDollar(actualOptions.defaultProps);
+  }
+
   return class extends React.Component {
     static propTypes = actualOptions.propTypes;
     static defaultProps = actualOptions.defaultProps;

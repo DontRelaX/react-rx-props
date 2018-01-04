@@ -199,7 +199,7 @@ describe('reactRxProps', () => {
 
     const Component = reactRxProps({
       defaultProps: {
-        param: inputParam1,
+        param$: inputParam1,
       },
     })(MockComponent);
     const wrapper = mount(<Component/>);
@@ -352,5 +352,34 @@ describe('reactRxProps', () => {
     wrapper.unmount();
 
     expect(existNext.withArgs(false).calledOnce).toBeTruthy();
+  });
+
+  it('should respect defaultProps with addDollar = false', () => {
+    const inputParam1 = 'Hello';
+    const inputParam2 = 'World';
+    const paramNext = sinon.spy();
+
+    sandbox.stub(MockComponent.prototype, 'componentWillMount').callsFake(function () {
+      this.props.param.subscribe(paramNext);
+    });
+
+    const Component = reactRxProps({
+      defaultProps: {
+        param: inputParam1,
+      },
+      addDollar: false,
+    })(MockComponent);
+    const wrapper = mount(<Component/>);
+
+    expect(paramNext.calledOnce).toBeTruthy();
+    expect(paramNext.withArgs(inputParam1).calledOnce).toBeTruthy();
+
+    wrapper.setProps({
+      param: inputParam2,
+    });
+
+    expect(paramNext.calledTwice).toBeTruthy();
+    expect(paramNext.withArgs(inputParam2).calledOnce).toBeTruthy();
+    wrapper.unmount();
   });
 });
