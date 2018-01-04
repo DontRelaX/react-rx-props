@@ -31,20 +31,17 @@ class YourComponent extends React.Component {...}
 If options object not provided - default values will be used.
 
 `ignoreProps` - array of props that should not be wrapped into observable.
-By default its `['className', 'style']`. Functions never wrapped into observable.
+By default its `['className', 'style']`. Functions and Observables never wrapped 
+into observable.
 
 `existName` - name of `exist` param. By default it `exist`. If you set it to 
 `false` - exist param will be not passed. Exist param is useful observable
 that can be used as `observable.takeUntil(this.props.exist)`. It will be 
 emit value once HoC component will unmount. Affected by `addDollar`.
 
-`propTypes` - instead specifying prop types in your component pass it here. By default `undefined`. 
-If `addDollar = true` all dollars at the end of prop names will be removed. It may help IDE to properly 
-highlight props.
+`propTypes` - instead specifying prop types in your component pass it here. By default `undefined`.
 
 `defaultProps` - instead specifying default props in your component pass it here. By default `undefined`.
-If `addDollar = true` all dollars at the end of prop names will be removed. It may help IDE to properly 
-highlight props.
 
 `addDollar` - if `true` it will add $ to property name when it wrapped into observable. By default `true`.
 
@@ -144,8 +141,8 @@ methods. Lets update it using React Rx Props library:
 @reactRxProps({
   propTypes: {
     className: PropTypes.string,
-    value$: PropTypes.number,
-    useServerCall$: PropTypes.bool, 
+    value: PropTypes.number,
+    useServerCall: PropTypes.bool, 
   }
 })
 export class Fibonacci extends React.Component {
