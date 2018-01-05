@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import './App.css';
 import FibonacciBasic from './FibonacciBasic';
 import FibonacciReactRxProps from './FibonacciReactRxProps';
+import FibonacciStateless from './FibonacciStateless';
 
 
-
-class App extends Component {
+export default class App extends Component {
   state = {
     value: 5,
-    useServerCall: false
+    useServerCall: false,
   };
 
   setValue = (e) => {
@@ -19,7 +19,7 @@ class App extends Component {
 
   setUseServerCall = (e) => {
     this.setState({
-      useServerCall: e.target.checked
+      useServerCall: e.target.checked,
     });
   };
 
@@ -45,9 +45,11 @@ class App extends Component {
           <div className="label">ReactRxProps: </div>
           <FibonacciReactRxProps className="data fibonacci" value={ this.state.value } useServerCall={ this.state.useServerCall }/>
         </div>
+        <div className="pair">
+          <div className="label">Stateless: </div>
+          <FibonacciStateless className="data fibonacci" value={ this.state.value } useServerCall={ this.state.useServerCall }/>
+        </div>
       </div>
     );
   }
 }
-
-export default App;

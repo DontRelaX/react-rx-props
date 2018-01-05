@@ -25,6 +25,12 @@ describe('reactRxProps', () => {
     sandbox.restore();
   });
 
+  it('should produce readable displayName', () => {
+    const Component = reactRxProps()(MockComponent);
+
+    expect(Component.displayName).toEqual('reactRxProps(MockComponent)');
+  });
+
   it('should pass observable instead value', () => {
     let outputParam = null;
     sandbox.stub(MockComponent.prototype, 'componentWillMount').callsFake(function () {

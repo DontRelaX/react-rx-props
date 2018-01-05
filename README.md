@@ -13,18 +13,12 @@ You also need to have `react@>=15.0.0` and `rxjs@>=5.0.0` in your dependencies.
 
 ### Documentation
 
-#### Basic usage: 
+#### reactRxProps: 
 
 ```jsx harmony
 import { reactRxProps } from 'react-rx-props';
 
 reactRxProps(options)(YourComponent)
-```
-
-or if you prefer annotations:
-```jsx harmony
-@reactRxProps(options)
-class YourComponent extends React.Component {...}
 ```
 
 #### Options
@@ -45,6 +39,27 @@ emit value once HoC component will unmount. Affected by `addDollar`.
 
 `addDollar` - if `true` it will add $ to property name when it wrapped into observable. By default `true`.
 
+#### reactRxPropsConnect:
+
+```jsx harmony
+import { reactRxPropsConnect } from 'react-rx-props';
+
+reactRxPropsConnect(options)(YourComponent)
+```
+
+#### Options
+If options object not provided - default values will be used.
+
+`connect` - this function will be executed before component will be mounted. It have 2 args:
+`props` that represent all passed props to this component and `render` callback that
+should be executed when you want to render wrapped component. `render` have single `props` param
+that will be used to update current props passed to wrapped component. In addition to this props
+wrapped component will receive all non Observable props.
+
+`propTypes` - instead specifying prop types in your component pass it here. By default `undefined`.
+
+`defaultProps` - instead specifying default props in your component pass it here. By default `undefined`.
+
 ### Motivation
 Often after getting some input data we create some internal model of component 
 that allow faster render invocation, for example lets write component that display 
@@ -56,148 +71,25 @@ value         //We should calculate fibonacci and render component after this pr
 useServerCall //Rendering is not required after this property change, but it will be used in next calculation
 ```
 
-also we have external function that calculate fibonacci number and return promise:
-```typescript
-calculateFibonacciExternal(value: number, useServerCall: boolean): Promise<number>;
-```
-
 Lets write it in some kind of classic way:
-```jsx harmony
-export default class Fibonacci extends React.Component {
-  static propTypes = {
-    className: PropTypes.string,
-    value: PropTypes.number.isRequired,
-    useServerCall: PropTypes.bool.isRequired,
-  };
-
-  state = {
-    loading: true,
-    fibonacci: null
-  };
-
-  unmounted = false;
-  calculationId = 0;
-
-  calculateFibonacci = (value, useServerCall, cb) => {
-    const currentCalculationId = ++this.calculationId;
-    calculateFibonacciExternal(value, useServerCall).then(fibonacci => {
-      if(currentCalculationId === this.calculationId && !this.unmounted) {
-        cb(fibonacci);
-      }
-    });
-  };
-
-  componentWillMount() {
-    this.calculateFibonacci(this.props.value, this.props.useServerCall, (fibonacci) => {
-      this.setState({
-        fibonacci: fibonacci,
-        loading: false,
-      });
-    });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if(nextProps.value !== this.props.value) {
-      this.setState({
-        loading: true,
-      });
-      this.calculateFibonacci(nextProps.value, nextProps.useServerCall, (fibonacci) => {
-        this.setState({
-          fibonacci: fibonacci,
-          loading: false,
-        });
-      });
-    }
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return this.props.className !== nextProps.className ||
-      this.props.value !== nextProps.value ||
-      this.state.loading !== nextState.loading ||
-      this.state.fibonacci !== nextState.fibonacci;
-  }
-
-  componentWillUnmount() {
-    this.unmounted = true;
-  }
-
-  render() {
-    return (
-      <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
-        { this.state.loading ?
-          'Loading...' :
-          `Fibonacci of ${this.props.value} = ${this.state.fibonacci}`
-        }
-      </div>
-    );
-  }
-}
-```
+[FibonacciBasic.js](https://github.com/DontRelaX/react-rx-props/blob/master/example/src/FibonacciBasic.js)
 
 Pretty complex for such simple task? We need to handle this logic in 4 lifecycle 
-methods. Lets update it using React Rx Props library:
+methods. Have a lot of code duplication, `shouldComponentUpdate` executes not only
+when props changed but also when we update state. Its pretty easy to write wrong 
+code here, that will run additional renders for example.
 
-```jsx harmony
-class FibonacciReactRxProps extends React.Component {
-  static propTypes = {
-    className: PropTypes.string,
-    value$: PropTypes.instanceOf(Observable).isRequired,
-    useServerCall$: PropTypes.instanceOf(Observable).isRequired,
-    exist$: PropTypes.instanceOf(Observable).isRequired,
-  };
-
-  state = {
-    loading: true,
-    fibonacci: null,
-  };
-
-  calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
-
-  componentWillMount() {
-    this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
-
-    this.props.value$.switchMap(value => {
-      this.value = value;
-      this.setState({
-        loading: true,
-      });
-      return this.calculateFibonacci(value, this.useServerCall)
-        .takeUntil(this.props.exist$);
-    }).subscribe(fibonacci => {
-      this.setState({
-        loading: false,
-        fibonacci: fibonacci,
-      });
-    });
-  }
-
-  render() {
-    return (
-      <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
-        { this.state.loading ?
-          'Loading...' :
-          `Fibonacci of ${this.value} = ${this.state.fibonacci}`
-        }
-      </div>
-    );
-  }
-}
-
-export default reactRxProps({
-  propTypes: {
-    className: PropTypes.string,
-    value: PropTypes.number.isRequired,
-    useServerCall: PropTypes.bool.isRequired,
-  }
-})(FibonacciReactRxProps)
-```
+Lets update it using React Rx Props library:
+[FibonacciReactRxProps.js](https://github.com/DontRelaX/react-rx-props/blob/master/example/src/FibonacciReactRxProps.js)
 
 Now all logic placed in componentWillMount. Lets make breakdown to explain what's going on:
 ```jsx harmony
 componentWillMount() {
   //We are simply save useServerCall as class property (better to put such properties under some object), 
   //no setState call, no render.
-  this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
+  this.props.useServerCall$.subscribe(useServerCall => {
+    this.useServerCall = useServerCall;
+  });
   
   //On every value change including initial value...
   this.props.value$.switchMap(value => {
@@ -221,6 +113,9 @@ componentWillMount() {
   });
 }
 ```
+
+I bet you would like to write stateless component instead, lets do it using `reactRxPropsConnect`:
+[FibonacciStateless.js](https://github.com/DontRelaX/react-rx-props/blob/master/example/src/FibonacciStateless.js)
 
 When we are working with Redux we can face more complex situations especially when we need to 
 work with multiple async data sources. Dealing with it using Observables will be easier and 

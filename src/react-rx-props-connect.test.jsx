@@ -24,6 +24,12 @@ describe('react-rx-props-connect', () => {
     sandbox.restore();
   });
 
+  it('should produce readable displayName', () => {
+    const Component = reactRxPropsConnect()(MockComponent);
+
+    expect(Component.displayName).toEqual('reactRxPropsConnect(MockComponent)');
+  });
+
   it('should pass all props to connect function', () => {
     const param = 'Hello';
     const connect = sinon.spy();

@@ -20,6 +20,7 @@ export const reactRxProps = (options = {}) => (Component) => {
   return class extends React.Component {
     static propTypes = actualOptions.propTypes;
     static defaultProps = actualOptions.defaultProps;
+    static displayName = `reactRxProps(${Component.displayName || Component.name || 'Component'})`;
 
     componentWillMount() {
       Object.keys(this.props)

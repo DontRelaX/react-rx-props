@@ -5,6 +5,8 @@ import { reactRxProps } from 'react-rx-props';
 import { Observable } from 'rxjs';
 import calculateFibonacciExternal from './calculate-fibonacci';
 
+const calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
+
 class FibonacciReactRxProps extends React.Component {
   static propTypes = {
     className: PropTypes.string,
@@ -28,7 +30,7 @@ class FibonacciReactRxProps extends React.Component {
       this.setState({
         loading: true,
       });
-      return this.calculateFibonacci(value, this.useServerCall)
+      return calculateFibonacci(value, this.useServerCall)
         .takeUntil(this.props.exist$);
     }).subscribe(fibonacci => {
       this.setState({
@@ -37,8 +39,6 @@ class FibonacciReactRxProps extends React.Component {
       });
     });
   }
-
-  calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
 
   render() {
     return (
@@ -57,5 +57,5 @@ export default reactRxProps({
     className: PropTypes.string,
     value: PropTypes.number.isRequired,
     useServerCall: PropTypes.bool.isRequired,
-  }
+  },
 })(FibonacciReactRxProps);
