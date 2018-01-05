@@ -21,7 +21,7 @@ import { reactRxProps } from 'react-rx-props';
 reactRxProps(options)(YourComponent)
 ```
 
-#### Options
+##### Options
 If options object not provided - default values will be used.
 
 `ignoreProps` - array of props that should not be wrapped into observable.
@@ -47,7 +47,7 @@ import { reactRxPropsConnect } from 'react-rx-props';
 reactRxPropsConnect(options)(YourComponent)
 ```
 
-#### Options
+##### Options
 If options object not provided - default values will be used.
 
 `connect` - this function will be executed before component will be mounted. It have 2 args:
