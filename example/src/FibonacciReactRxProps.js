@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { reactRxProps } from 'react-rx-props';
 import { Observable } from 'rxjs';
-import calculateFibonacciExternal from './calculate-fibonacci';
+import calculateFibonacciExternal from './calculateFibonacci';
 
 const calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
 
