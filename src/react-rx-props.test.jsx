@@ -3,7 +3,6 @@ import sinon from 'sinon';
 import { mount } from 'enzyme';
 import { Observable } from 'rxjs';
 import _ from 'underscore';
-
 import { reactRxProps, defaultIgnoreProps } from './react-rx-props';
 
 

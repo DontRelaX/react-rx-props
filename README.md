@@ -63,21 +63,21 @@ calculateFibonacciExternal(value: number, useServerCall: boolean): Promise<numbe
 
 Lets write it in some kind of classic way:
 ```jsx harmony
-export class Fibonacci extends React.Component {
+export default class Fibonacci extends React.Component {
   static propTypes = {
     className: PropTypes.string,
-    value: PropTypes.number,
-    useServerCall: PropTypes.bool, 
+    value: PropTypes.number.isRequired,
+    useServerCall: PropTypes.bool.isRequired,
   };
-  
+
   state = {
     loading: true,
     fibonacci: null
   };
-  
+
   unmounted = false;
   calculationId = 0;
-  
+
   calculateFibonacci = (value, useServerCall, cb) => {
     const currentCalculationId = ++this.calculationId;
     calculateFibonacciExternal(value, useServerCall).then(fibonacci => {
@@ -86,7 +86,7 @@ export class Fibonacci extends React.Component {
       }
     });
   };
-  
+
   componentWillMount() {
     this.calculateFibonacci(this.props.value, this.props.useServerCall, (fibonacci) => {
       this.setState({
@@ -95,13 +95,13 @@ export class Fibonacci extends React.Component {
       });
     });
   }
-  
+
   componentWillReceiveProps(nextProps) {
     if(nextProps.value !== this.props.value) {
       this.setState({
         loading: true,
       });
-      this.calculateFibonacci(this.props.value, this.props.useServerCall, (fibonacci) => {
+      this.calculateFibonacci(nextProps.value, nextProps.useServerCall, (fibonacci) => {
         this.setState({
           fibonacci: fibonacci,
           loading: false,
@@ -109,18 +109,18 @@ export class Fibonacci extends React.Component {
       });
     }
   }
-  
+
   shouldComponentUpdate(nextProps, nextState) {
-    return this.props.className !== nextProps.className || 
-           this.props.value !== nextProps.value ||
-           this.state.loading !== nextState.loading ||
-           this.state.fibonacci !== nextState.fibonacci;
+    return this.props.className !== nextProps.className ||
+      this.props.value !== nextProps.value ||
+      this.state.loading !== nextState.loading ||
+      this.state.fibonacci !== nextState.fibonacci;
   }
-  
+
   componentWillUnmount() {
     this.unmounted = true;
   }
-  
+
   render() {
     return (
       <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
@@ -138,29 +138,29 @@ Pretty complex for such simple task? We need to handle this logic in 4 lifecycle
 methods. Lets update it using React Rx Props library:
 
 ```jsx harmony
-@reactRxProps({
-  propTypes: {
+class FibonacciReactRxProps extends React.Component {
+  static propTypes = {
     className: PropTypes.string,
-    value: PropTypes.number,
-    useServerCall: PropTypes.bool, 
-  }
-})
-export class Fibonacci extends React.Component {
+    value$: PropTypes.instanceOf(Observable).isRequired,
+    useServerCall$: PropTypes.instanceOf(Observable).isRequired,
+    exist$: PropTypes.instanceOf(Observable).isRequired,
+  };
+
   state = {
     loading: true,
-    fibonacci: null
+    fibonacci: null,
   };
-  
+
   calculateFibonacci = (...args) => Observable.fromPromise(calculateFibonacciExternal(...args));
-  
+
   componentWillMount() {
     this.props.useServerCall$.subscribe(useServerCall => this.useServerCall = useServerCall);
-    
+
     this.props.value$.switchMap(value => {
       this.value = value;
       this.setState({
         loading: true,
-      }); 
+      });
       return this.calculateFibonacci(value, this.useServerCall)
         .takeUntil(this.props.exist$);
     }).subscribe(fibonacci => {
@@ -170,7 +170,7 @@ export class Fibonacci extends React.Component {
       });
     });
   }
-  
+
   render() {
     return (
       <div className={ classnames(this.props.className, this.state.loading && 'loading') }>
@@ -182,6 +182,14 @@ export class Fibonacci extends React.Component {
     );
   }
 }
+
+export default reactRxProps({
+  propTypes: {
+    className: PropTypes.string,
+    value: PropTypes.number.isRequired,
+    useServerCall: PropTypes.bool.isRequired,
+  }
+})(FibonacciReactRxProps)
 ```
 
 Now all logic placed in componentWillMount. Lets make breakdown to explain what's going on:

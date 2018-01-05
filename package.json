@@ -1,6 +1,6 @@
 {
   "name": "react-rx-props",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Convert react component props to rx multicasted observables",
   "main": "dist/react-rx-props.cjs.js",
   "module": "dist/react-rx-props.esm.js",

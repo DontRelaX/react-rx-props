@@ -1,0 +1,31 @@
+.App {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.App .pair {
+    display: flex;
+    justify-content: stretch;
+    width: 400px;
+}
+
+.App .pair + .pair {
+    margin-top: 5px;
+}
+
+.App .pair .label {
+    flex: 0 0 50%;
+}
+
+.App .pair .data {
+    flex: 0 0 50%;
+}
+
+.App .separator {
+    margin: 10px 0;
+    border-bottom: 2px dashed #777;
+    width: 400px;
+}
